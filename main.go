@@ -1,10 +1,11 @@
 package main
 
 import (
-	// TODO RUN A GO GET ON THE LIBRARIES BELOW
-	"code.gitea.io/sdk/gitea"
 	"context"
+	"fmt"
 	"time"
+
+	"code.gitea.io/sdk/gitea"
 	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
@@ -20,7 +21,7 @@ func main() {
 	giteaclient := gitea.NewClient("https://YOURGITEAHOST/", "GETTOKENFROMGITEA") // TODO: CONFIGURE WITH URL of your GITEA INSTANCE AND A TOKEN FROM YOUR GITEA INSTANCE
 
 	opt := &github.RepositoryListByOrgOptions{
-		ListOptions: github.ListOptions{Type: "public", PerPage: 100},
+		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
 	// get all pages of results
@@ -28,7 +29,8 @@ func main() {
 	for {
 		repos, resp, err := client.Repositories.ListByOrg(ctx, "PUTGITHUBORGYOUWANTCLONEDHERE", opt) // TODO: SET WITH NAME OF GITHUB ORG YOU WANT CLONED
 		if err != nil {
-			return err
+			fmt.Println(err)
+			return
 		}
 		allRepos = append(allRepos, repos...)
 		if resp.NextPage == 0 {
@@ -43,9 +45,9 @@ func main() {
 			description = *allRepos[i].Description
 		}
 		giteaclient.MigrateRepo(gitea.MigrateRepoOption{
-			CloneAddr:   *allRepos[i].CloneURL,
-			UID:         4, // TODO: SET WITH THE ID OF YOUR USER IN GITEA (IN MY CASE 4 is the user id of an org on my gitea instance)
-			RepoName:    *allRepos[i].Name,
+			CloneAddr: *allRepos[i].CloneURL,
+			UID:       4, // TODO: SET WITH THE ID OF YOUR USER IN GITEA (IN MY CASE 4 is the user id of an org on my gitea instance)
+			RepoName:  *allRepos[i].Name,
 			// Mirror:      true, // TODO: uncomment this if you want gitea to periodically check for changes
 			// Private:     true, // TODO: uncomment this if you want the repo to be private on gitea
 			Description: description,
